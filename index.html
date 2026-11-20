@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Judite — entradas e saídas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f2f8; --surface:#ffffff; --ink:#1d1b2e; --muted:#5e5b73; --line:#dcdaea;
+  --casa:#2b5fa8; --casa-soft:#e3ecf8; --salao:#8a2f6f; --salao-soft:#f6e4ef;
+  --in:#17734a; --out:#b3321f; --warn-bg:#fff3d9; --warn-ink:#6b4300; --focus:#1d1b2e;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --text:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14131f; --surface:#1f1d30; --ink:#efeef8; --muted:#a9a6c2; --line:#34314d;
+    --casa:#8db4ee; --casa-soft:#1d2a44; --salao:#e79ccb; --salao-soft:#3b1f33;
+    --in:#5fd39a; --out:#ff9a86; --warn-bg:#3a2d12; --warn-ink:#ffd98a; --focus:#efeef8; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14131f; --surface:#1f1d30; --ink:#efeef8; --muted:#a9a6c2; --line:#34314d;
+  --casa:#8db4ee; --casa-soft:#1d2a44; --salao:#e79ccb; --salao-soft:#3b1f33;
+  --in:#5fd39a; --out:#ff9a86; --warn-bg:#3a2d12; --warn-ink:#ffd98a; --focus:#efeef8; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--text)}
+main{max-width:560px;margin:0 auto;padding:16px 16px 48px}
+h1{font:700 30px/1.1 var(--display);margin:8px 0 4px}
+h2{font:700 20px/1.2 var(--display);margin:0 0 10px}
+p{margin:0 0 10px;max-width:62ch}
+.warn{background:var(--warn-bg);color:var(--warn-ink);padding:10px 12px;border-radius:10px;font-size:14px;margin:10px 0}
+.muted{color:var(--muted);font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.tab{border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:14px;text-align:left;cursor:pointer}
+.tab .name{font:700 17px var(--display)}
+.tab .bal{font:700 26px/1.2 var(--display);font-variant-numeric:tabular-nums;margin-top:4px;overflow-wrap:anywhere}
+.tab.casa[aria-pressed="true"]{border-color:var(--casa);background:var(--casa-soft)}
+.tab.salao[aria-pressed="true"]{border-color:var(--salao);background:var(--salao-soft)}
+.casa .name{color:var(--casa)} .salao .name{color:var(--salao)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 140px}
+label{display:block;font-size:14px;color:var(--muted);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+textarea{min-height:84px;resize:vertical}
+.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:600;cursor:pointer;background:var(--ink);color:var(--bg)}
+.btn.in{background:var(--in);color:#fff} .btn.out{background:var(--out);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:6px 10px;font-size:14px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btns .btn{flex:1 1 130px}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-variant-numeric:tabular-nums}
+.sum b{display:block;font:700 18px var(--display)}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+.amt{font:700 17px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.amt.in{color:var(--in)} .amt.out{color:var(--out)}
+.desc{font-size:14px;color:var(--muted)}
+details summary{cursor:pointer;font-weight:600;padding:4px 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+#toast.show{opacity:1}
+[hidden]{display:none!important}
+.chat{max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.msg{margin:0;padding:8px 10px;border-radius:12px;max-width:88%;font-size:15px;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--ink);color:var(--bg)}
+.msg.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line)}
+.chatrow{display:flex;gap:8px;margin-top:10px}
+.chatrow input{flex:1;min-width:0}
+.chatrow .btn{flex:0 0 auto}
+.chk{display:flex;gap:8px;align-items:center;margin-top:10px}
+.chk input{width:auto}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1>Judite</h1>
+    <button class="btn ghost small" id="theme" type="button">Tema</button>
+  </div>
+  <div class="warn">Protótipo de testes. Não use como controle financeiro definitivo. Os lançamentos ficam só neste navegador, neste aparelho: não há sincronização entre celulares ou computadores.</div>
+  <div id="storewarn" class="warn" hidden>O navegador bloqueou o armazenamento: os lançamentos valem só até você fechar esta página. Use “Copiar cópia de segurança”.</div>
+
+  <div class="tabs" role="group" aria-label="Escolha a área">
+    <button class="tab casa" id="tab-casa" type="button" aria-pressed="true" data-area="casa"><span class="name">Casa</span><div class="bal" id="bal-casa">R$ 0,00</div></button>
+    <button class="tab salao" id="tab-salao" type="button" aria-pressed="false" data-area="salao"><span class="name">Salão</span><div class="bal" id="bal-salao">R$ 0,00</div></button>
+  </div>
+
+  <section class="panel" aria-labelledby="t-chat">
+    <h2 id="t-chat">Pergunte à Judite</h2>
+    <div id="chat-log" class="chat" aria-live="polite"></div>
+    <div id="proposal" class="btns" hidden>
+      <button class="btn in" id="p-ok" type="button">Confirmar lançamento</button>
+      <button class="btn ghost" id="p-no" type="button">Cancelar</button>
+    </div>
+    <div class="chatrow">
+      <input id="chat-in" aria-label="Mensagem para a Judite" placeholder="Ex.: quanto tenho no salão?" autocomplete="off">
+      <button class="btn" id="chat-send" type="button">Enviar</button>
+      <button class="btn ghost" id="mic" type="button" aria-label="Falar com a Judite">🎤</button>
+    </div>
+    <p id="mic-status" class="muted" role="status" style="margin:8px 0 0"></p>
+    <div id="voice-note" class="warn" hidden></div>
+    <div class="btns" id="perm-row" hidden><button class="btn" id="mic-perm" type="button">Permitir microfone</button></div>
+    <div id="undo" class="btns" hidden><button class="btn ghost" id="undo-btn" type="button">Desfazer último lançamento</button></div>
+    <label class="chk"><input type="checkbox" id="speak"> Judite responde em voz alta também quando eu escrevo</label>
+    <label class="chk"><input type="checkbox" id="ask"> Pedir confirmação antes de lançar</label>
+    <p class="muted" style="margin-top:8px">Toque em 🎤 e fale. Quando você fala, a Judite responde em voz alta e já faz o lançamento, dizendo o que lançou; se errou, toque em Desfazer ou diga “desfazer”. Ela só funciona com esta página aberta e não escuta sozinha. Em muitos navegadores o reconhecimento de voz envia o áudio ao serviço do próprio navegador. Valores podem ser ditos em números ou por extenso (“trinta e cinco reais e cinquenta centavos”).</p>
+  </section>
+
+  <section class="panel" aria-labelledby="t-new">
+    <h2 id="t-new">Novo lançamento em <span id="areaname">Casa</span></h2>
+    <label for="amount">Valor em reais</label>
+    <input id="amount" inputmode="decimal" placeholder="80,00" autocomplete="off">
+    <label for="desc">Descrição (opcional)</label>
+    <input id="desc" placeholder="Ex.: corte e escova, conta de luz" autocomplete="off">
+    <div class="btns">
+      <button class="btn in" type="button" id="add-in">Lançar entrada</button>
+      <button class="btn out" type="button" id="add-out">Lançar saída</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="t-sum">
+    <h2 id="t-sum">Resumo — <span id="areaname2">Casa</span></h2>
+    <div class="sum">
+      <div><span class="muted">Entradas</span><b id="s-in">R$ 0,00</b></div>
+      <div><span class="muted">Saídas</span><b id="s-out">R$ 0,00</b></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="t-list">
+    <h2 id="t-list">Lançamentos</h2>
+    <ul id="list"></ul>
+    <p id="empty" class="muted">Nenhum lançamento nesta área ainda. Preencha o valor acima e toque em Lançar entrada ou Lançar saída.</p>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>Ler um aviso do banco (experimental)</summary>
+      <p class="muted" style="margin-top:8px">Cole o texto de um aviso. A Judite procura “R$” e palavras como “recebeu” ou “pagou” e <b>sugere</b> valor e tipo. É uma estimativa por palavras-chave, que pode errar, e <b>não significa que o banco confirmou</b>. Nada é registrado sozinho: você confere, escolhe Casa ou Salão e lança. Uma página web não consegue ler suas notificações; só o texto que você colar é analisado, e ele não é salvo.</p>
+      <label for="notice">Texto do aviso</label>
+      <textarea id="notice" placeholder="Ex.: Você recebeu um Pix de R$ 80,00"></textarea>
+      <div class="btns"><button class="btn" type="button" id="analyze">Analisar texto</button></div>
+      <p id="result" class="muted" role="status" style="margin-top:10px"></p>
+    </details>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>Cópia de segurança</summary>
+      <p class="muted" style="margin-top:8px">Limpar os dados do navegador apaga os lançamentos. Copie o texto abaixo e guarde onde quiser. Para restaurar, cole-o no campo e toque em Restaurar (isso substitui os lançamentos atuais).</p>
+      <label for="backup">Texto da cópia</label>
+      <textarea id="backup"></textarea>
+      <div class="btns">
+        <button class="btn" type="button" id="copy">Copiar cópia de segurança</button>
+        <button class="btn ghost" type="button" id="restore">Restaurar</button>
+      </div>
+    </details>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  var KEY="judite_web_v1", area="casa", memory=[], storageOk=true;
+  var AREAS={casa:"Casa",salao:"Salão"};
+  var $=function(id){return document.getElementById(id)};
+
+  function load(){
+    try{ var raw=localStorage.getItem(KEY); var a=raw?JSON.parse(raw):[]; return Array.isArray(a)?a:[]; }
+    catch(e){ storageOk=false; return memory; }
+  }
+  function save(list){
+    memory=list;
+    try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(e){ storageOk=false; }
+    $("storewarn").hidden=storageOk;
+  }
+
+  // Dinheiro em centavos
+  function parseCents(s){
+    if(s==null) return null;
+    s=String(s).replace(/R\$/gi,"").replace(/[\s\u00A0]/g,"");
+    if(!s||!/^[\d.,]+$/.test(s)) return null;
+    var lc=s.lastIndexOf(","), ld=s.lastIndexOf(".");
+    if(lc>=0&&ld>=0){ s = lc>ld ? s.replace(/\./g,"").replace(",",".") : s.replace(/,/g,""); }
+    else if(lc>=0){ if((s.match(/,/g)||[]).length>1) return null; s=s.replace(",","."); }
+    else if(ld>=0){ var after=s.length-ld-1; if(!((s.match(/\./g)||[]).length===1 && after>=1 && after<=2)) s=s.replace(/\./g,""); }
+    if(!/^\d+(\.\d{1,2})?$/.test(s)) return null;
+    var p=s.split("."), c=parseInt(p[0],10)*100+(p[1]?parseInt((p[1]+"0").slice(0,2),10):0);
+    return (c>0 && c<=10000000000) ? c : null;
+  }
+  function brl(c){ return (c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+  function when(t){ return new Date(t).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}); }
+  function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(function(){t.classList.remove("show")},2600); }
+
+  // Leitura heurística de avisos (mesma lógica do app Android)
+  function norm(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); }
+  var IN=["voce recebeu","recebeu um pix","pix recebido","transferencia recebida","recebemos","deposito recebido","pagamento recebido","credito em conta","te enviou","te transferiu","te pagou"];
+  var OUT=["voce enviou","voce pagou","voce transferiu","pix enviado","transferencia enviada","transferencia realizada","pagamento efetuado","pagamento realizado","pagamento aprovado","compra aprovada","compra no debito","compra no credito","compra realizada","compra de","debito em conta","saque","boleto pago"];
+  var SKIP=["oferta","simule","emprestimo","promocao","cashback","ganhe","convite","sorteio","pre-aprovado","parcele"];
+  function analyze(raw){
+    var t=norm(raw||""), m=/r\$\s*(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?)/.exec(t);
+    if(!m) return null;
+    var cents=parseCents(m[1]); if(!cents) return null;
+    var hi=IN.some(function(k){return t.indexOf(k)>=0}), ho=OUT.some(function(k){return t.indexOf(k)>=0});
+    if(!hi&&!ho) return null;
+    if(SKIP.some(function(k){return t.indexOf(k)>=0})) return null;
+    return {cents:cents, guess: hi&&!ho ? "in" : (ho&&!hi ? "out" : null)};
+  }
+
+  function render(){
+    var list=load(), totals={casa:0,salao:0};
+    list.forEach(function(r){ if(totals[r.area]!==undefined) totals[r.area]+= r.kind==="in"?r.cents:-r.cents; });
+    $("bal-casa").textContent=brl(totals.casa); $("bal-salao").textContent=brl(totals.salao);
+    ["casa","salao"].forEach(function(a){ $("tab-"+a).setAttribute("aria-pressed", String(a===area)); });
+    $("areaname").textContent=$("areaname2").textContent=AREAS[area];
+    var mine=list.filter(function(r){return r.area===area}).sort(function(a,b){return b.time-a.time});
+    var ti=0,to=0; mine.forEach(function(r){ if(r.kind==="in") ti+=r.cents; else to+=r.cents; });
+    $("s-in").textContent=brl(ti); $("s-out").textContent=brl(to);
+    $("empty").hidden=mine.length>0;
+    var ul=$("list"); ul.innerHTML="";
+    mine.forEach(function(r){
+      var li=document.createElement("li"), left=document.createElement("div"), right=document.createElement("div");
+      var kind=document.createElement("strong"); kind.textContent=r.kind==="in"?"Entrada":"Saída";
+      var d=document.createElement("div"); d.className="desc"; d.textContent=when(r.time)+(r.desc?" — "+r.desc:"");
+      left.appendChild(kind); left.appendChild(d);
+      var amt=document.createElement("div"); amt.className="amt "+r.kind; amt.textContent=(r.kind==="in"?"+ ":"− ")+brl(r.cents);
+      var del=document.createElement("button"); del.type="button"; del.className="btn ghost small"; del.textContent="Excluir";
+      del.setAttribute("aria-label","Excluir "+(r.kind==="in"?"entrada":"saída")+" de "+brl(r.cents));
+      del.onclick=function(){ if(confirm("Excluir este lançamento? Isso não pode ser desfeito.")){ save(load().filter(function(x){return x.id!==r.id})); render(); toast("Lançamento excluído."); } };
+      right.style.textAlign="right"; right.appendChild(amt); right.appendChild(del);
+      li.appendChild(left); li.appendChild(right); ul.appendChild(li);
+    });
+    $("backup").value=JSON.stringify(list);
+  }
+
+  function add(kind){
+    var c=parseCents($("amount").value);
+    if(!c){ toast("Informe um valor maior que zero. Ex.: 80,00"); $("amount").focus(); return; }
+    var list=load();
+    list.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7), area:area, kind:kind, cents:c, desc:$("desc").value.trim(), time:Date.now()});
+    save(list); $("amount").value=""; $("desc").value=""; render();
+    toast((kind==="in"?"Entrada":"Saída")+" lançada em "+AREAS[area]+".");
+  }
+
+  document.querySelectorAll(".tab").forEach(function(b){ b.onclick=function(){ area=b.getAttribute("data-area"); render(); }; });
+  $("add-in").onclick=function(){add("in")}; $("add-out").onclick=function(){add("out")};
+
+  $("analyze").onclick=function(){
+    var r=analyze($("notice").value), out=$("result");
+    if(!r){ out.textContent="Não encontrei um valor com sinais de entrada ou saída. Se for uma movimentação, digite o valor acima."; return; }
+    $("amount").value=String(Math.floor(r.cents/100))+","+("0"+(r.cents%100)).slice(-2);
+    out.textContent="Sugestão (estimativa, não confirmada pelo banco): valor "+brl(r.cents)+", "+
+      (r.guess==="in"?"parece uma entrada":r.guess==="out"?"parece uma saída":"tipo incerto")+
+      ". O valor foi para o campo acima. Confira, escolha Casa ou Salão e toque em Lançar entrada ou Lançar saída.";
+    $("amount").scrollIntoView({behavior:"smooth",block:"center"});
+  };
+
+  $("copy").onclick=function(){
+    var ta=$("backup"); ta.select();
+    var done=function(){ toast("Cópia de segurança copiada."); };
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(done,function(){ toast("Selecione o texto e copie manualmente."); }); }
+    else { try{ document.execCommand("copy"); done(); }catch(e){ toast("Selecione o texto e copie manualmente."); } }
+  };
+  $("restore").onclick=function(){
+    try{
+      var a=JSON.parse($("backup").value);
+      if(!Array.isArray(a)) throw 0;
+      a=a.filter(function(r){return r&&AREAS[r.area]&&(r.kind==="in"||r.kind==="out")&&Number.isInteger(r.cents)&&r.cents>0&&r.id});
+      if(!confirm("Substituir os lançamentos atuais por "+a.length+" lançamento(s) da cópia?")) return;
+      save(a); render(); toast("Cópia restaurada.");
+    }catch(e){ toast("Texto da cópia inválido. Cole exatamente o texto copiado."); }
+  };
+
+  $("theme").onclick=function(){
+    var r=document.documentElement, dark=r.getAttribute("data-theme")==="dark" || (!r.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+    r.setAttribute("data-theme", dark?"light":"dark");
+  };
+
+  // ---- Assistente Judite: regras simples, sem IA externa ----
+  var PREF="judite_web_prefs", prefs={ask:false,speak:false};
+  try{ var pr=JSON.parse(localStorage.getItem(PREF)||"{}"); prefs.ask=!!pr.ask; prefs.speak=!!pr.speak; }catch(e){}
+  function savePrefs(){ try{ localStorage.setItem(PREF,JSON.stringify(prefs)); }catch(e){} }
+  $("ask").checked=prefs.ask; $("speak").checked=prefs.speak;
+  $("ask").onchange=function(){ prefs.ask=$("ask").checked; savePrefs(); };
+  $("speak").onchange=function(){ prefs.speak=$("speak").checked; savePrefs(); };
+  var log=$("chat-log"), proposal=null, waiting=null, lastId=null, voiceMode=false;
+
+  function say(text,who,listenAfter){
+    var p=document.createElement("p"); p.className="msg "+who; p.textContent=text; log.appendChild(p);
+    while(log.children.length>14) log.removeChild(log.firstChild);
+    log.scrollTop=log.scrollHeight;
+    if(who!=="bot") return;
+    if((prefs.speak||voiceMode)&&window.speechSynthesis&&window.SpeechSynthesisUtterance){
+      try{
+        speechSynthesis.cancel();
+        var u=new SpeechSynthesisUtterance(text); u.lang="pt-BR";
+        if(listenAfter&&voiceMode){ u.onend=function(){ startListening(); }; u.onerror=function(){ startListening(); }; }
+        speechSynthesis.speak(u); return;
+      }catch(e){}
+    }
+    if(listenAfter&&voiceMode) startListening();
+  }
+
+  // Números por extenso (pt-BR), para quando a voz devolve "oitenta reais"
+  var NW={um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,quatorze:14,catorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19,vinte:20,trinta:30,quarenta:40,cinquenta:50,sessenta:60,setenta:70,oitenta:80,noventa:90,cem:100,cento:100,duzentos:200,trezentos:300,quatrocentos:400,quinhentos:500,seiscentos:600,setecentos:700,oitocentos:800,novecentos:900,mil:1000};
+  function wordsVal(ws){ var total=0,cur=0; ws.forEach(function(w){ if(w==="mil"){ total+=(cur||1)*1000; cur=0; } else cur+=NW[w]; }); return total+cur; }
+  function runs(t){
+    var tk=t.replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean), out=[], cur=null;
+    for(var i=0;i<tk.length;i++){
+      var w=tk[i];
+      if(NW.hasOwnProperty(w)){ if(!cur) cur={words:[],end:0}; cur.words.push(w); cur.end=i; }
+      else if(w==="e"&&cur&&i+1<tk.length&&NW.hasOwnProperty(tk[i+1])){ continue; }
+      else if(cur){ out.push(cur); cur=null; }
+    }
+    if(cur) out.push(cur);
+    out.forEach(function(r){ r.next=tk[r.end+1]||""; r.val=wordsVal(r.words); });
+    return out;
+  }
+  function amountCents(t){
+    var m=/(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?)/.exec(t);
+    if(m){ var c=parseCents(m[1]); if(c) return c; }
+    var rs=runs(t), reais=null, cents=0;
+    rs.forEach(function(r){ if(/^centavos?$/.test(r.next)) cents=r.val; else if(reais===null&&/^reais?$/.test(r.next)) reais=r.val; });
+    if(reais===null){
+      var c2=rs.filter(function(r){ return !(r.words.length===1&&(r.words[0]==="um"||r.words[0]==="uma"))&&!/^centavos?$/.test(r.next); })[0];
+      if(c2) reais=c2.val;
+    }
+    var total=(reais||0)*100+(cents>0&&cents<100?cents:0);
+    return total>0&&total<=10000000000?total:null;
+  }
+
+  function tot(a){ var r={i:0,o:0}; load().forEach(function(x){ if(!a||x.area===a){ if(x.kind==="in") r.i+=x.cents; else r.o+=x.cents; } }); return r; }
+  function report(a){
+    var names=a?[a]:["casa","salao"];
+    say(names.map(function(n){ var t=tot(n); return AREAS[n]+": entradas "+brl(t.i)+", saídas "+brl(t.o)+", saldo "+brl(t.i-t.o)+"."; }).join(" "),"bot");
+  }
+  function kindText(k){ return k==="in"?"uma entrada":"uma saída"; }
+  function showProposal(){ $("proposal").hidden=!proposal; }
+
+  function doLaunch(kind,cents,a){
+    var list=load(), id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    list.push({id:id,area:a,kind:kind,cents:cents,desc:"Pedido à Judite",time:Date.now()});
+    save(list); lastId=id; area=a; render(); $("undo").hidden=false;
+    say("Lancei "+kindText(kind)+" de "+brl(cents)+" em "+AREAS[a]+". Se errei, toque em Desfazer ou diga “desfazer”.","bot");
+  }
+  function undo(){
+    if(!lastId){ say("Não tenho nenhum lançamento meu para desfazer.","bot"); return; }
+    var id=lastId; lastId=null; $("undo").hidden=true;
+    save(load().filter(function(x){return x.id!==id})); render();
+    say("Desfeito. Apaguei o último lançamento que fiz.","bot");
+  }
+  function request(kind,cents,a){
+    if(!prefs.ask){ doLaunch(kind,cents,a); return; }
+    proposal={kind:kind,cents:cents,area:a}; showProposal();
+    say("Posso lançar "+kindText(kind)+" de "+brl(cents)+" em "+AREAS[a]+"? Toque em Confirmar ou diga “sim”.","bot",true);
+  }
+  function confirmP(){
+    if(!proposal){ say("Não há nenhum lançamento esperando confirmação.","bot"); return; }
+    var p=proposal; proposal=null; showProposal(); doLaunch(p.kind,p.cents,p.area);
+  }
+  function cancelP(){ proposal=null; waiting=null; showProposal(); say("Tudo bem, não lancei nada.","bot"); }
+  function has(t,words){ return words.some(function(w){ return new RegExp("\\b"+w).test(t); }); }
+
+  function handle(raw,viaVoice){
+    voiceMode=!!viaVoice;
+    var t=norm(raw||"").trim(); if(!t) return;
+    say(raw.trim(),"me");
+    var a=/\bsalao\b/.test(t)?"salao":(/\bcasa\b/.test(t)?"casa":null);
+    var cents=amountCents(t);
+    var kind=has(t,["saida","gastei","paguei","despesa","gasto","comprei","saiu"])?"out":(has(t,["entrada","recebi","ganhei","entrou","faturei","receita"])?"in":null);
+    if(has(t,["cancela","deixa pra la","esquece"])||(proposal&&has(t,["nao"]))){ cancelP(); return; }
+    if(has(t,["desfaz","errei","apaga o ultimo"])){ undo(); return; }
+    if(proposal&&has(t,["confirm","sim","pode","isso","ok","certo","lanca"])){ confirmP(); return; }
+    if(waiting&&a&&!cents&&!kind){ var w=waiting; waiting=null; request(w.kind,w.cents,a); return; }
+    if(kind&&cents){
+      if(a){ request(kind,cents,a); return; }
+      waiting={kind:kind,cents:cents};
+      say("Entendi "+kindText(kind)+" de "+brl(cents)+". É na Casa ou no Salão?","bot",true); return;
+    }
+    if(has(t,["ultimo","recente"])){
+      var l=load().filter(function(x){return !a||x.area===a}).sort(function(x,y){return y.time-x.time}).slice(0,3);
+      say(l.length?l.map(function(r){ return (r.kind==="in"?"Entrada ":"Saída ")+brl(r.cents)+" em "+AREAS[r.area]; }).join("; ")+".":"Ainda não há lançamentos.","bot"); return;
+    }
+    if(has(t,["quanto","saldo","total","resumo","balanco"])){ report(a); return; }
+    if(has(t,["ajuda","o que voce faz","comandos"])){
+      say("Posso lançar (ex.: “entrada de 80 reais no salão”, “gastei trinta e cinco reais na casa”), dizer saldos (“quanto tenho no salão?”), listar os últimos lançamentos e desfazer o último que fiz. Não consulto banco nenhum: só o que está lançado aqui.","bot"); return;
+    }
+    if(has(t,["oi","ola","bom dia","boa tarde","boa noite","judite","e ai"])){ say("Oi! Diga “ajuda” para ver o que eu faço.","bot"); return; }
+    if(kind){ say("Qual o valor? Diga, por exemplo: “"+(kind==="in"?"entrada":"saída")+" de 80 reais no salão”.","bot",true); return; }
+    say("Não entendi. Tente “entrada de 80 reais no salão”, “gastei 35,50 na casa” ou “quanto tenho na casa?”. Diga “ajuda” para ver tudo.","bot");
+  }
+
+  function send(){ var v=$("chat-in").value; $("chat-in").value=""; handle(v,false); }
+  $("chat-send").onclick=send;
+  $("chat-in").onkeydown=function(e){ if(e.key==="Enter"){ e.preventDefault(); send(); } };
+  $("p-ok").onclick=confirmP; $("p-no").onclick=cancelP; $("undo-btn").onclick=undo;
+
+  // Voz
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, listening=false, heard=false;
+  var env={framed:false, policyBlocked:false, secure:window.isSecureContext!==false, perm:"unknown", micOk:false};
+  try{ env.framed=window.self!==window.top; }catch(e){ env.framed=true; }
+  try{
+    // Se a página está dentro de um iframe sem permissão de microfone, o Chrome recusa SEM perguntar.
+    var pp=document.permissionsPolicy||document.featurePolicy;
+    if(pp&&typeof pp.allowsFeature==="function") env.policyBlocked=!pp.allowsFeature("microphone");
+  }catch(e){}
+
+  function setStatus(s){ $("mic-status").textContent=s; }
+  var NOTE_BLOCKED="Voz indisponível neste local: esta página está aberta dentro do claude.ai, que não repassa o microfone ao Chrome. Por isso o Chrome nem pergunta e a opção Microfone não aparece nas configurações do site. Você pode digitar os pedidos normalmente. Para usar a voz, abra a Judite em uma página própria (veja o guia “Judite web em página própria”).";
+  var NOTE_DENIED="O microfone está bloqueado para este site. Toque no ícone à esquerda do endereço → Permissões → Microfone → Permitir, e recarregue a página.";
+
+  function updateVoiceUi(){
+    var note=$("voice-note"), row=$("perm-row");
+    if(!SR){
+      $("mic").hidden=true; row.hidden=true; note.hidden=true;
+      setStatus("Este navegador não tem reconhecimento de voz. Digite o pedido (no Chrome do Android a voz costuma funcionar).");
+      return;
+    }
+    if(!env.secure){
+      note.hidden=false; note.textContent="O microfone só funciona em páginas seguras (https). Abra a Judite por um endereço https."; row.hidden=true; return;
+    }
+    if(env.policyBlocked){
+      note.hidden=false; note.textContent=NOTE_BLOCKED; row.hidden=true; $("mic").setAttribute("aria-disabled","true"); return;
+    }
+    if(env.perm==="denied"&&!env.micOk){
+      note.hidden=false; note.textContent=env.framed?NOTE_BLOCKED:NOTE_DENIED; row.hidden=true; return;
+    }
+    note.hidden=true;
+    row.hidden=!(env.perm==="prompt"||env.perm==="unknown")||env.micOk;
+  }
+  function refreshPerm(){
+    if(!navigator.permissions||!navigator.permissions.query){ updateVoiceUi(); return; }
+    navigator.permissions.query({name:"microphone"}).then(function(st){
+      env.perm=st.state; st.onchange=function(){ env.perm=st.state; updateVoiceUi(); }; updateVoiceUi();
+    },function(){ updateVoiceUi(); });
+  }
+
+  function micErr(err){
+    var n=err&&err.name;
+    if(n==="NotAllowedError"||n==="SecurityError") return env.framed?NOTE_BLOCKED:NOTE_DENIED;
+    if(n==="NotFoundError"||n==="OverconstrainedError") return "Não encontrei um microfone neste aparelho.";
+    if(n==="NotReadableError") return "O microfone está em uso por outro app. Feche-o e tente de novo.";
+    return "Não consegui acessar o microfone ("+(n||"erro")+"). Você pode digitar o pedido.";
+  }
+  // Pede a autorização POR AÇÃO DO USUÁRIO (toque). Só mostra erro depois de tentar de verdade.
+  function ensureMic(done){
+    if(env.micOk||env.perm==="granted"){ done(true); return; }
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ done(true); return; }
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      stream.getTracks().forEach(function(t){ t.stop(); });
+      env.micOk=true; env.perm="granted"; updateVoiceUi(); done(true);
+    },function(err){
+      if(err&&(err.name==="NotAllowedError"||err.name==="SecurityError")&&env.framed) env.policyBlocked=true;
+      else if(err&&err.name==="NotAllowedError") env.perm="denied";
+      updateVoiceUi(); say(micErr(err),"bot"); done(false);
+    });
+  }
+
+  function errMsg(code){
+    if(code==="not-allowed") return env.framed?NOTE_BLOCKED:NOTE_DENIED;
+    if(code==="service-not-allowed") return "O Chrome bloqueou o serviço de voz. Confira em Configurações do Chrome → Configurações do site → Microfone, e se o reconhecimento de voz do Google está ativo no aparelho.";
+    if(code==="no-speech") return "Não ouvi nada. Toque em 🎤 e fale de novo.";
+    if(code==="audio-capture") return "Não encontrei um microfone neste aparelho.";
+    if(code==="network") return "O reconhecimento de voz precisa de internet e não conseguiu conectar.";
+    if(code==="aborted") return "";
+    return "Não consegui ouvir (erro: "+code+"). Você pode digitar o pedido.";
+  }
+  function startListening(){
+    if(!SR||listening||env.policyBlocked) return;
+    try{
+      rec=new SR(); rec.lang="pt-BR"; rec.interimResults=true; rec.maxAlternatives=1; heard=false;
+      rec.onresult=function(e){
+        var r=e.results[e.results.length-1], txt=r[0].transcript;
+        if(!r.isFinal){ setStatus("Ouvindo: “"+txt+"”"); return; }
+        heard=true; setStatus(""); handle(txt,true);
+      };
+      rec.onerror=function(e){
+        heard=true; setStatus("");
+        if(e.error==="not-allowed"&&env.framed){ env.policyBlocked=true; updateVoiceUi(); }
+        var m=errMsg(e.error); if(m) say(m,"bot");
+      };
+      rec.onend=function(){ listening=false; $("mic").textContent="🎤"; if(!heard) setStatus("Não ouvi nada. Toque em 🎤 e fale de novo."); };
+      rec.start(); listening=true; $("mic").textContent="⏹"; setStatus("Ouvindo… fale agora.");
+    }catch(e){ listening=false; say("Não consegui iniciar o microfone neste navegador. Digite o pedido.","bot"); }
+  }
+  $("mic").onclick=function(){
+    if(listening&&rec){ rec.stop(); return; }
+    if(env.policyBlocked){ updateVoiceUi(); setStatus("Voz indisponível aqui. Digite o pedido ou use a Judite em página própria."); return; }
+    voiceMode=true;
+    ensureMic(function(ok){ if(ok) startListening(); });
+  };
+  $("mic-perm").onclick=function(){
+    ensureMic(function(ok){ if(ok) setStatus("Microfone liberado. Toque em 🎤 e fale."); });
+  };
+  updateVoiceUi(); refreshPerm();
+
+  say(env.policyBlocked||!SR
+    ? "Oi! Eu sou a Judite. Escreva: “entrada de 80 reais no salão”, “gastei trinta e cinco reais na casa”, “quanto tenho no salão?”. Diga “ajuda” para ver tudo."
+    : "Oi! Eu sou a Judite. Toque em 🎤 e fale, ou escreva: “entrada de 80 reais no salão”, “gastei trinta e cinco reais na casa”, “quanto tenho no salão?”. Diga “ajuda” para ver tudo.","bot");
+  render();
+})();
+</script>
+</body>
+</html>
